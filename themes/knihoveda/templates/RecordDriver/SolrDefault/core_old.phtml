@@ -1,0 +1,704 @@
+<?
+  if($loggedin = $this->auth()->isLoggedIn()) {
+    $user_id = $loggedin->id;
+    $loggedin = true;
+  } else {
+    $user_id = false;
+  }
+?>
+<div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
+
+  <div class="col-sm-3">
+    <div id="obalka_cover" class="cover_column text-center">
+      <div class="imagespop">
+          <? $coreImageLinks = $this->driver->getImageLinks(); ?>
+          <? if (!empty($coreImageLinks)) : ?>
+            <? foreach ($coreImageLinks as $key => $value) : ?>
+              <div>
+                <a class="image-link" href="<?= $value['link']; ?>">
+                  <img class="recordcover" src="<?= $value['link']; ?>" alt="{<?= $value['desc']; ?>">
+                </a>
+              </div>
+            <? endforeach; ?>
+          <? endif; ?>
+        </div>
+    </div>
+  </div>
+
+
+  <div class="col-sm-9">
+
+    <? if (isset($this->scrollData) && ($this->scrollData['previousRecord'] || $this->scrollData['nextRecord'])): ?>
+      <div class="pager hidden-print">
+        <? if ($this->scrollData['previousRecord']): ?>
+          <div class="floatleft btn nopadding">
+            <a href="<?=$this->recordLink()->getUrl($this->scrollData['previousRecord'])?>" title="<?=$this->transEsc('Previous Search Result')?>" rel="nofollow">&laquo; <?=$this->transEsc('Prev')?></a>
+          </div>
+        <? else: ?>
+          <div class="disabled floatleft btn nopadding"><a href="#">&laquo; <?=$this->transEsc('Prev')?></a></div>
+        <? endif; ?>
+	#<?=$this->localizedNumber($this->scrollData['currentPosition']) . ' ' . $this->transEsc('of') . ' ' . $this->localizedNumber($this->scrollData['resultTotal']) . ' ' . $this->transEsc('results') ?>
+        <? if ($this->scrollData['nextRecord']): ?>
+          <div class="floatright btn nopadding">
+            <a href="<?=$this->recordLink()->getUrl($this->scrollData['nextRecord'])?>" title="<?=$this->transEsc('Next Search Result')?>" rel="nofollow"><?=$this->transEsc('Next')?> &raquo;</a>
+          </div>
+        <? else: ?>
+          <div class="disabled floatright btn nopadding"><a href="#"><?=$this->transEsc('Next')?> &raquo;</a></div>
+        <? endif; ?>
+      </div>
+    <? endif; ?>
+
+    <? $uniqueID = $this->driver->getUniqueID(); ?>
+
+    <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+      <? /* Display the lists that this record is saved to */ ?>
+      <div class="savedLists hidden alert alert-info">
+        <strong><?=$this->transEsc("Saved in")?>:</strong>
+      </div>
+    <? endif; ?>
+
+    <?/* Display Main Details */?>
+    <table class="table table-striped" summary="<?=$this->transEsc('Bibliographic Details')?>">
+
+      <? $recordSource = $this->driver->getRecordSource();?>
+      <? $coreCollection = $this->driver->getCollection();?>
+      <? if (isset($coreCollection)): ?>
+        <tr>
+          <th><?=$this->transEsc('Source')?>:</th>
+          <td><?= $this->transEsc("collection_" . $coreCollection[0]); ?></td>
+        </tr>
+      <? endif; ?>
+
+      <? $coreBCBT = $this->driver->getBCBT();?>
+      <? if ($coreBCBT && ($recordSource == 'clavius')): ?>
+        <tr valign="top" class="title_line">
+        <th><?=$this->transEsc('record_number_bcbt')?>: </th>
+          <td>
+            <?= $coreBCBT ?>
+         </td>
+        </tr>
+      <? endif; ?>
+
+      <? $coreMua_sig = $this->driver->getMuaSig();?>
+      <? if ($coreMua_sig && ($recordSource == 'mua-rkp')): ?>
+        <tr valign="top" class="title_line">
+        <th><?=$this->transEsc('record_number_rkp')?>: </th>
+          <td>
+            <?= $coreMua_sig ?>
+         </td>
+        </tr>
+      <? endif; ?>
+
+      <? if ($uniqueID && ($recordSource == 'nkp')): ?>
+        <tr valign="top" class="title_line">
+        <th><?=$this->transEsc('record_number_kps')?>: </th>
+          <td>
+            <?= $uniqueID; ?>
+         </td>
+        </tr>
+      <? endif; ?>
+
+      <? $parentRecord = $this->driver->getParentRecord();?>
+      <? if (!empty($parentRecord)): ?>
+        <tr>
+          <th><?= $this->transEsc("Main record"); ?>:</th>
+          <td>
+              <div>
+                <a href="<?= $this->recordLink()->getUrl($parentRecord['id']);?>"><?= $parentRecord['title'] ? $parentRecord['title'] : $parentRecord['bcbt']?></a>
+              </div>
+          </td>
+        </tr>
+      <? endif; ?>
+<!--
+      <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
+      <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+        <tr>
+          <th><?=$this->transEsc(count($authors['main']) > 1 ? 'Main Authors' : 'Main Author')?>: </th>
+          <td>
+            <? $i = 0; foreach ($authors['main'] as $author => $roles): ?><?=($i++ == 0)?'':', '?><div property="author"><a href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml($author)?></a></span><? endforeach; ?>
+          </td>
+        </tr>
+      <? endif; ?> -->
+
+      <? $coreAuthors = $this->driver->getAuthors(); ?>
+      <? if (!empty($coreAuthors)): ?>
+        <tr>
+          <th><?=$this->transEsc(count($coreAuthors) > 1 ? 'Main Authors' : 'Main Author')?>: </th>
+          <td>
+            <? foreach ($coreAuthors as $key => $author): ?>
+              <div>
+                <a href="<?=$this->record($this->driver)->getLink('author', $author)?>"><?=$this->escapeHtml($author)?></a>
+              </div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+      <? endif; ?>
+
+
+      <? $coreTitleCaption = $this->driver->getTitleCaption(); ?>
+      <? if ($coreTitleCaption): ?>
+        <tr>
+          <th><?=$this->transEsc('Title caption')?>:</th>
+          <td><?= $coreTitleCaption; ?></td>
+        </tr>
+      <? endif; ?>
+
+      <? $coreTitle = $this->driver->getTitle(); ?>
+      <? if (isset($coreTitle)): ?>
+        <tr>
+          <th><?=$this->transEsc('Title')?>:</th>
+          <td><?= $coreTitle; ?></td>
+        </tr>
+      <? endif; ?>
+
+
+      <? $coreLocation = $this->driver->getLocation(); ?>
+      <? if (!empty($coreLocation)): ?>
+        <tr>
+          <th><?=$this->transEsc('loc_location')?>:</th>
+          <td>
+            <? foreach ($coreLocation['loc_text'] as $key => $value): ?>
+              <div>
+                <?= $value; ?>
+              </div>
+            <? endforeach; ?>
+            <? foreach ($coreLocation['loc_code'] as $key => $value): ?>
+              <div>
+                <?= $value; ?>
+              </div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+      <? endif; ?>
+
+
+      <? $coreTitlePageText = $this->driver->getTitlePageText(); ?>
+      <? if (!empty($coreTitlePageText)): ?>
+      <tr>
+        <th><?=$this->transEsc('Title page transcription')?>:</th>
+        <td>
+          <? foreach ($coreTitlePageText as $key => $value) : ?>
+            <div id="short_coreTitlePageText">
+              <?= substr($value, 0, 45); ?>
+              <? if (strlen($value)>45) : ?>
+                &nbsp;&nbsp;
+                <a href="#" onclick="showFullText('coreTitlePageText'); return false;"> &raquo;&raquo; </a>
+              <? endif; ?>
+            </div>
+
+            <div id="coreTitlePageText" class="offscreen"><?= $value ?>&nbsp;&nbsp;
+            <a href="#" onclick="hideFullText('coreTitlePageText'); return false;"> &laquo;&laquo; </a></div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreImpresumText = $this->driver->getImpresumText(); ?>
+      <? if (!empty($coreImpresumText)): ?>
+        <tr>
+          <th><?=$this->transEsc('Impresum transcription')?>:</th>
+          <td>
+            <? foreach ($coreImpresumText as $key => $value) : ?>
+              <div>
+                <?=$value?>
+              </div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+      <? endif; ?>
+
+      <? $publications = $this->driver->getPublicationDetails();
+      if (!empty($publications)): ?>
+      <tr>
+        <th>
+        <? if ($recordSource == 'mua-rkp') : ?>
+	  <?=$this->transEsc('dating')?>:
+        <? else : ?>
+	  <?=$this->transEsc('Imprint')?>:
+        <? endif; ?>
+        </th>
+        <td>
+          <? foreach ($publications as $field): ?>
+            <span property="publisher" typeof="Organization">
+            <? $pubPlace = $field->getPlace(); if (!empty($pubPlace)): ?>
+              <span property="location"><?=$this->escapeHtml($pubPlace)?></span>
+            <? endif; ?>
+            <? $pubName = $field->getName(); if (!empty($pubName)): ?>
+              <span property="name"><?=$this->escapeHtml($pubName)?></span>
+            <? endif; ?>
+            </span>
+            <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
+              <span property="publicationDate"><?=$this->escapeHtml($pubDate)?></span>
+            <? endif; ?>
+            <br/>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $corePhysical = $this->driver->getPhysicalDescriptions();
+      if (!empty($corePhysical)): ?>
+        <tr>
+          <th><?=$this->transEsc('Extent')?>: </th>
+          <td>
+            <? foreach ($corePhysical as $key => $value) : ?>
+              <div><?= $value; ?></div>
+            <? endforeach; ?>
+          </td>
+        </tr>
+      <? endif; ?>
+
+
+      <? $coreAdditionalAuthor = $this->driver->getAdditionalAuthor();
+      if (!empty($coreAdditionalAuthor)): ?>
+      <tr>
+        <th><?=$this->transEsc('Other authors')?>: </th>
+        <td>
+          <? foreach ($coreAdditionalAuthor as $key => $value) : ?>
+            <div>
+              <a href="<?=$this->record($this->driver)->getLink('author', $value)?>"><?= $value; ?></a>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+<!--
+      <? $coreDateSpan = $this->driver->getDateSpan();
+      if (!empty($coreDateSpan)): ?>
+      <tr>
+        <th><?=$this->transEsc('Sequential Design')?>: </th>
+        <td>
+          <? foreach ($coreDateSpan as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+-->
+
+      <!-- , "PublishPerson" -->
+      <? $authorTypes = ["Translator", "ForewordAuthor", "Dedicant", "Dedicator", "Censor", "MasterPrinter", "Contributor", "OtherAuthor", "AuthHolder", "Compositor" ]; ?>
+
+      <? foreach ($authorTypes as $authorType) : ?>
+        <? $fncstring = 'get'.$authorType; ?>
+        <? $coreTypes[$authorType] = $this->driver->$fncstring() ; ?>
+
+        <? if (!empty($coreTypes[$authorType])): ?>
+          <tr>
+            <th><?=$this->transEsc($authorType)?>: </th>
+            <td>
+              <? foreach ($coreTypes[$authorType] as $key => $value) : ?>
+                <div>
+                  <a href="<?=$this->record($this->driver)->getLink('author', $value)?>"><?= $value; ?></a>
+                </div>
+              <? endforeach; ?>
+            </td>
+          </tr>
+        <? endif; ?>
+      <? endforeach; ?>
+
+      <? $corePublishPlace = $this->driver->getPublishPlace();
+      if (!empty($corePublishPlace)):  ?>
+      <tr>
+        <th><?=$this->transEsc('Publication place')?>: </th>
+        <td>
+          <a href="<?=$this->url('search-results')?>?filter%5B%5D=~publishPlace_facet%3A%22<?=urlencode($corePublishPlace)?>%22"><?= $corePublishPlace; ?></a>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreInternalParts = $this->driver->getInternalParts();
+      if (!empty($coreInternalParts)): ?>
+      <tr>
+        <th><?=$this->transEsc('Internal parts')?>: </th>
+        <td>
+          <? foreach ($coreInternalParts as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreTypoAnalysis = $this->driver->getTypoAnalysis();
+      if (!empty($coreTypoAnalysis)): ?>
+      <tr>
+        <th><?= ($recordSource == "nkp") ? $this->transEsc('Includes') : $this->transEsc('Typological-typographic analysis')?>: </th>
+        <td>
+          <? foreach ($coreTypoAnalysis as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreIllustrations = $this->driver->getIllustrations();
+      if (!empty($coreIllustrations)): ?>
+      <tr>
+        <th><?=$this->transEsc('Illustrations')?>: </th>
+        <td>
+          <? foreach ($coreIllustrations as $key => $value) : ?>
+            <div>
+              <a href="<?=$this->recordLink()->getUrl($value['id'])?>"><?= $value['title']; ?></a>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $corePublisherNotes = $this->driver->getPublisherNotes();
+      if (!empty($corePublisherNotes)): ?>
+      <tr>
+        <th><?=$this->transEsc('Publisher note')?>: </th>
+        <td>
+          <? foreach ($corePublisherNotes as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreLiterature = $this->driver->getLiterature();?>
+      <? if (!empty($coreLiterature)): ?>
+      <tr>
+        <th><?=$this->transEsc('Literature')?>: </th>
+        <td>
+          <? foreach ($coreLiterature as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreNotes = $this->driver->getNotes();
+      if (!empty($coreNotes)): ?>
+      <tr>
+        <th><?=$this->transEsc('Notes')?>: </th>
+        <td>
+          <? foreach ($coreNotes as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $termTypes = ["Topics", "AuthorPersonal", "Geographic", "Era", "Genre"]; ?>
+      <!-- <? $searchTypes = ["Topics" => "topic", "AuthorPersonal" => "personalname", "Geographic" => "Subject", "Era" => "Subject", "Genre" => "genre"]; ?> -->
+      <? $searchTypes = ["Topics" => "topic", "AuthorPersonal" => "subject", "Geographic" => "subject", "Era" => "subject", "Genre" => "genre"]; ?>
+
+      <? foreach ($termTypes as $termType) : ?>
+        <? $fncstring = 'get'.$termType; ?>
+        <? $coreTermTypes[$termType] = $this->driver->$fncstring() ; ?>
+
+        <? if (!empty($coreTermTypes[$termType])): ?>
+          <tr>
+            <th><?=$this->transEsc("core_" . $termType); ?>: </th>
+            <td>
+                <? foreach ($coreTermTypes[$termType] as $key => $value) : ?>
+                  <div>
+                    <a title="<?=$this->transEsc($termType)?>" href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($value)?>%22&amp;type=<?=$searchTypes[$termType]?>"><?= $value; ?></a>
+                  </div>
+                <? endforeach; ?>
+            </td>
+          </tr>
+        <? endif; ?>
+      <? endforeach; ?>
+
+      <? $coreSubjects = $this->driver->getSubjects();
+      if (!empty($coreSubjects)): ?>
+      <tr>
+        <th><?=$this->transEsc('core_Subjects')?>: </th>
+        <td id="short_coreSubjects">
+          <a href="#" onclick="showFullText('coreSubjects'); return false;" class=""> &raquo;&raquo; </a>
+        </td>
+        <td class="offscreen" id="coreSubjects">
+          <? foreach ($coreSubjects as $key => $value) : ?>
+            <div>
+              <a href="<?=$this->url('search-results')?>?lookfor=%22<?=urlencode($value)?>%22&amp;type=subject"><?= $value; ?></a>
+            </div>
+          <? endforeach; ?>
+          <div>
+            <a href="#" onclick="hideFullText('coreSubjects'); return false;"> &laquo;&laquo; </a>
+          </div>
+        </td>
+
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreReferences = $this->driver->getReferences();
+      if (!empty($coreReferences)): ?>
+      <tr>
+        <th><?=$this->transEsc('References')?>: </th>
+        <td>
+          <? foreach ($coreReferences as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreKodik = $this->driver->getKodik();
+      if (!empty($coreKodik)): ?>
+      <tr>
+        <th><?=$this->transEsc('Kodik')?>: </th>
+        <td>
+          <? foreach ($coreKodik as $key => $value) : ?>
+            <? foreach ($value as $subkey => $subvalue) : ?>
+              <? if ($subvalue) : ?>
+                <div>
+                  <strong><?= $this->transEsc($subkey); ?>: </strong><?= $subvalue; ?>
+                </div>
+              <? endif; ?>
+            <? endforeach; ?>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreOrnament = $this->driver->getOrnament();
+      if (!empty($coreOrnament)): ?>
+      <tr>
+        <th><?=$this->transEsc('Ornament')?>: </th>
+        <td>
+          <? foreach ($coreOrnament as $key => $value) : ?>
+            <? if (!empty($value)) : ?>
+              <div>
+                <strong><?= $this->transEsc($key); ?>: </strong>
+                <? foreach ($value as $subkey => $subvalue) : ?>
+                    <?= $subvalue; ?>
+                <? endforeach; ?>
+              </div>
+            <? endif; ?>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreBinding = $this->driver->getBinding();
+      if (!empty($coreBinding)): ?>
+      <tr>
+        <th><?=$this->transEsc('Binding')?>: </th>
+        <td>
+          <? if (!empty($coreBinding['bind'])): ?>
+            <? foreach ($coreBinding['bind'] as $key => $value) : ?>
+                <div>
+                  <?= $value; ?>
+                </div>
+            <? endforeach; ?>
+          <? endif; ?>
+          <? foreach ($coreBinding as $key => $value) : ?>
+            <? if (($key != "bind") && (!empty($value))) : ?>
+              <div>
+                <strong><?= $this->transEsc($key); ?>: </strong>
+                <?= $value; ?>
+              </div>
+            <? endif; ?>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreProvenance = $this->driver->getProvenance();
+      if (!empty($coreProvenance)): ?>
+      <tr>
+        <th><?=$this->transEsc('Provenance')?>: </th>
+        <td>
+          <? foreach ($coreProvenance as $key => $value) : ?>
+            <? if (!empty($value)) : ?>
+              <div>
+                <strong><?= $this->transEsc($key); ?>: </strong>
+                <? foreach ($value as $subkey => $subvalue) : ?>
+                    <?= $subvalue; ?>
+                <? endforeach; ?>
+              </div>
+            <? endif; ?>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $corePreservation = $this->driver->getPreservation();
+      if (!empty($corePreservation)): ?>
+      <tr>
+        <th><?=$this->transEsc('Preservation')?>: </th>
+        <td>
+          <? foreach ($corePreservation as $key => $value) : ?>
+            <? if (!empty($value)) : ?>
+              <div>
+                <strong><?= $this->transEsc($key); ?>: </strong>
+                <? foreach ($value as $subkey => $subvalue) : ?>
+                    <?= $subvalue; ?>
+                <? endforeach; ?>
+              </div>
+            <? endif; ?>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreTextDescription = $this->driver->getTextDescription();
+      if (!empty($coreTextDescription)): ?>
+      <tr>
+        <th><?=$this->transEsc('Text description')?>: </th>
+        <td>
+          <? foreach ($coreTextDescription as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $coreAddons = $this->driver->getAddons();
+      if (!empty($coreAddons)): ?>
+      <tr>
+        <th><?=$this->transEsc('Addons')?>: </th>
+        <td>
+          <? foreach ($coreAddons as $key => $value) : ?>
+            <div>
+              <?= $value; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+
+      <? $coreRelatedDocument = $this->driver->getRelatedDocumentKVO();
+      if (!empty($coreRelatedDocument)): ?>
+      <tr>
+        <th><?=$this->transEsc('Literature')?>: </th>
+        <td>
+          <? foreach ($coreRelatedDocument as $key => $value) : ?>
+            <div>
+                <?= $value['text']; ?>
+            </div>
+          <? endforeach; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+
+      <? $coreSourceDocument = $this->driver->getSourceDocument();
+      if (!empty($coreSourceDocument)): ?>
+      <tr>
+        <th><?=$this->transEsc('Source document')?>: </th>
+        <td>
+          <?= $coreSourceDocument; ?>
+        </td>
+      </tr>
+      <? endif; ?>
+
+      <? $recordLinks = $this->driver->getAllRecordLinks();?>
+      <? if(!empty($recordLinks)): ?>
+        <tr>
+          <th><?=$this->transEsc('Related Items')?>:</th>
+          <td>
+            <? foreach ($recordLinks as $recordLink): ?>
+              <?=$this->transEsc($recordLink['title'])?>:
+              <a href="<?=$this->recordLink()->related($recordLink['link'])?>"><?=$this->escapeHtml($recordLink['value'])?></a><br />
+            <? endforeach; ?>
+            <? /* if we have record links, display relevant explanatory notes */
+              $related = $this->driver->getRelationshipNotes();
+              if (!empty($related)): ?>
+                <? foreach ($related as $field): ?>
+                  <?=$this->escapeHtml($field)?><br/>
+                <? endforeach; ?>
+            <? endif; ?>
+          </td>
+        </tr>
+      <? endif; ?>
+
+      <? $coreURLs = $this->driver->getURLs(); ?>
+      <? if(!empty($coreURLs)): ?>
+        <tr>
+          <th><?=$this->transEsc('Links')?>:</th>
+          <td>
+            <? foreach ($coreURLs as $key => $value) : ?>
+              <div>
+                <?if ($value['link']): ?>
+		  <a href="<?= $value['link']; ?>" target="_blank">
+		  <span class="fa fa-camera-retro beforelink"></span>
+                <? endif; ?>
+
+                <span><?= $value['desc']; ?></span>
+                <?if ($value['link']): ?></a><? endif; ?>
+              </div>
+            <? endforeach; ?>
+        </td>
+        </tr>
+      <? endif; ?>
+
+
+
+      <? $catalogLink = $this->driver->getCatalogLink(); ?>
+      <? if(!empty($catalogLink)): ?>
+        <tr>
+          <th><?=$this->transEsc('Catalog link')?>:</th>
+          <td>
+              <a href="<?=$catalogLink?>" target="_blank">www</a>
+          </td>
+        </tr>
+        <?
+	  $ch = curl_init($catalogLink);
+	  curl_setopt($ch, CURLOPT_NOBODY, true);
+	  $ping_result = curl_exec($ch);
+	  curl_close($ch);
+	?>
+      <? endif; ?>
+
+      <? $coreExemplars = $this->driver->getExemplars(); ?>
+      <? if(!empty($coreExemplars)): ?>
+        <tr>
+          <th><?=$this->transEsc('Exemplars')?>:</th>
+          <td  id="short_coreExemplars">
+              <? $i=0 ; ?>
+              <? foreach ($coreExemplars as $key => $value) : ?>
+                <div>
+                  <?= $value; ?>
+                </div>
+                <? $i++;
+                if ($i >= 3 ) { break;} ?>
+              <? endforeach; ?>
+              <? if (count($coreExemplars) > 3): ;?>
+                <a href="#" onclick="showFullText('coreExemplars'); return false;"> &raquo;&raquo; </a>
+              <? endif ; ?>
+          </td>
+          <td id="coreExemplars" class="offscreen">
+              <? foreach ($coreExemplars as $key => $value) : ?>
+                <div>
+                  <?= $value; ?>
+                </div>
+              <? endforeach; ?>
+            <a href="#" onclick="hideFullText('coreExemplars'); return false;"> &laquo;&laquo; </a>
+          </td>
+
+        </tr>
+      <? endif; ?>
+
+    </table>
+    <?/* End Main Details */?>
+  </div>
+</div>

@@ -1,0 +1,245 @@
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+
+    $( "#datepicker" ).datepicker({ dateFormat: 'dd. mm. yy', firstDay: 1, minDate: 1, maxDate: 14 });
+
+  } );
+  </script>
+
+<?
+  // Grab list object from search results (if applicable):
+  $list = $this->results->getListObject();
+
+  // Set up page title:
+  $this->headTitle(isset($list) ? $list->title : $this->translate('Favorites'));
+
+  // Set up breadcrumbs:
+  $currPage = isset($list) ? 'List' : 'Favorites';
+  $this->layout()->breadcrumbs = '<li><a href="' .  $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc($currPage) . '</li>';
+
+  // Load Javascript dependencies into header:
+  $this->headScript()->appendFile("check_item_statuses.js");
+
+  $recordTotal = $this->results->getResultTotal();
+
+  // Convenience variable:
+  $account = $this->auth()->getManager();
+  $user = $this->auth()->isLoggedIn();
+
+
+  $usedDays[] = array('start' => '20170728', 'stop' => '20170803');
+  $usedDays[] = array('start' => '20170726', 'stop' => '20170726');
+?>
+
+<?=$this->flashmessages()?>
+
+<div class="row">
+  <div class="<?=$this->layoutClass('mainbody')?>">
+    
+    <div class="clearfix hidden-print">
+      <h2 class="pull-left flip"><?= $this->transEsc("Reserved study rooms")?></h2>
+      <table class="table table-striped">
+        <tr>
+          <th><?=$this->transEsc("Room number")?></th>
+          <th><?=$this->transEsc("Reservation period")?></th>
+          <th width="20%"><?=$this->transEsc("Cancel reservation")?></th>
+        </tr>
+      </table>
+    </div>
+
+
+    <div class="clearfix hidden-print">
+      <h2><?= $this->transEsc("New reservation")?></h2>
+      <div class="row">
+        <form class="form-inline" method="post" name="studyReservationForm" action="">
+          <div class="floatleft width-30">
+            <div class="margin-5">
+              <label><?= $this->transEsc("Study room number")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("Beginning of the reservation")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("End of the reservation")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("Reservation time")?></label>
+            </div>
+          </div>
+          <div class="floatright width-70">          
+            <div class="margin-5">
+              <select id="studyReservationRoomnuberSelect">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+              </select>
+            </div>
+            <div class="margin-5">
+              <input type="text" id="datepicker"></input>
+            </div>
+            <div class="margin-5">
+              Automaticky počítaný - js
+            </div>
+            <div class="margin-5">
+              <select id="studyReservationTypeSelect">
+                <option value="day"><?= $this->transEsc("Day")?></option>
+                <option value="day"><?= $this->transEsc("Week")?></option>
+                <option value="day"><?= $this->transEsc("Month")?></option>
+              </select>
+            </div>            
+          </div>
+          <div >
+            <input class="btn btn-primary" type="submit" value="Reserve">
+          </div>  
+        </form>
+      </div>
+
+    </div>
+
+    <div class="clearfix hidden-print">
+      <h2><?= $this->transEsc("Study rooms")?></h2>
+
+      <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-primary">1</label>
+        <label class="btn btn-primary">2</label>
+        <label class="btn btn-primary">3</label>
+        <label class="btn btn-primary">4</label>
+        <label class="btn btn-primary">5</label>
+        <label class="btn btn-primary">6</label>
+        <label class="btn btn-primary">7</label>
+        <label class="btn btn-primary">8</label>
+      </div>
+    </div>
+
+
+    <div class="clearfix hidden-print">
+      <h2>Další věc</h2>
+      <table class="table table-striped">
+        <tr>
+          <th><?=$this->transEsc("Room number")?></th>
+          <th><?=$this->transEsc("Reservation period")?></th>
+          <th width="20%"><?=$this->transEsc("Cancel reservation")?></th>
+        </tr>
+
+        <form class="form-inline" data-lightbox method="post" name="studyCancelForm" action="/MyResearch/CancelRoom">
+          <tr>
+            <td><?=$this->transEsc("Study room")?>1</td>
+            <input type="hidden" name="studyRoomNr" value="1"/>
+            <td>24. 7. 2017</td>
+            <input type="hidden" name="description" value="24. 7. 2017"/>
+            <input type="hidden" name="statusCode" value="54"/>
+            <td><input class="btn btn-primary" type="submit" value="<?= $this->transEsc("Cancel")?>"></td>
+          </tr>
+        </form>
+      </table>
+    </div>
+
+
+
+    <div>
+      <?
+      date_default_timezone_set("Europe/Prague");
+
+      /* Set the date */
+      $date = strtotime(date("Y-m-d"));
+
+      // $lastM = strtotime('last Monday');
+      // dump(date('d', $lastM));
+
+      $day = date('d', $date);
+      $month = date('m', $date);
+      $year = date('Y', $date);
+      $firstDay = mktime(0,0,0,$month, 1, $year);
+      // $firstDay = $lastM;
+      $title = strftime('%B', $firstDay);
+      $dayOfWeek = date('D', $firstDay);
+      $daysInMonth = cal_days_in_month(0, $month, $year);
+
+      $timestamp = strtotime('next Monday');
+      $weekDays = array();
+      for ($i = 0; $i < 7; $i++) {
+        $weekDays[] = strftime('%a', $timestamp);
+        $timestamp = strtotime('+1 day', $timestamp);
+      }
+
+      $blank = date('w', strtotime("{$year}-{$month}-01"));
+      $blank = $blank - 1;
+      ?>
+
+      <? 
+      $mar = array();
+
+      for($i = 0; $i < $blank; $i++) {
+        $mar[$i]['value'] = "";
+      }
+
+      for($i = 1; $i <= $daysInMonth; $i++){
+        $mar[$i + $blank - 1]['value'] = $i;
+        if($day == $i) {
+          $mar[$i + $blank - 1]['today'] = true;
+        }
+      }
+
+      for($i = 0; ($i + $blank + $daysInMonth) % 7 != 0; $i++) {
+        $mar[$i + $blank + $daysInMonth]['value'] = "";
+      }
+
+      for($i = 0; $i < count($mar); $i++) {
+        if($i < $day + $blank -1) { 
+          $mar[$i]['type'] = "inactive_day";
+        } else {
+          $mar[$i]['type'] = "active_day";
+        }
+      }
+
+      ?>
+
+      <table class="table table-bordered" >
+        <tr>
+          <th colspan="7" class="text-center"> <? echo $title ?> <? echo $year ?> </th>
+        </tr>
+        <tr>
+          <? foreach($weekDays as $key => $weekDay) : ?>
+            <td class="text-center"><? echo $weekDay ?></td>
+          <? endforeach ?>
+        </tr>
+        <tr>
+          <? for($i = 0; $i < count($mar); $i++): ?>
+            <td class="<?= $mar[$i]['type']; ?>">
+              <? if($day == $mar[$i]['value']): ?>
+                <strong><?= $mar[$i]['value']; ?></strong>  
+              <? else: ?>
+                <?= $mar[$i]['value']; ?>
+              <? endif; ?>   
+            </td>
+            <? if(($i+1) % 7 == 0): ?>
+              </tr><tr>
+            <? endif; ?>
+          <? endfor; ?>           
+        </tr>
+      </table>
+
+<?= dump($usedDays); ?>
+<?= dump($mar); ?>
+    </div>
+
+
+
+  </div>
+
+
+  <div class="<?=$this->layoutClass('sidebar')?>">
+    <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => isset($list) ? 'list' . $list['id'] : 'favorites'))?>
+    <? foreach ($this->results->getRecommendations('side') as $current): ?>
+      <?=$this->recommend($current)?>
+    <? endforeach; ?>
+  </div>
+</div>

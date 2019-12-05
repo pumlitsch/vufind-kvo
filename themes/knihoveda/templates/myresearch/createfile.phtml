@@ -1,0 +1,15 @@
+<?
+    // Set page title.
+    $this->headTitle($this->translate('Cancel reservation'));
+
+?>
+<h2><?=$this->transEsc('Cancel reservation')?></h2>
+
+<? if($status) : ?>
+<div>Vse bylo uspesne proverdeno.</div>
+<? else : ?>
+<div>Vse nebylo uspesne proverdeno/</div>
+<? endif; ?>
+
+
+

@@ -1,0 +1,208 @@
+<?
+    // Set up page title:
+    $this->headTitle($this->translate('Study rooms'));
+
+    // Set up breadcrumbs:
+    $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Study rooms') . '</li>';
+?>
+
+<?
+$roomsNr = array("1" => "000963580", "2" => "002169267");
+
+?>
+
+<div class="row">
+  <div class="<?=$this->layoutClass('mainbody')?>">
+    <h2><?=$this->transEsc('Study rooms') ?></h2>
+
+    <?=$this->flashmessages()?>
+
+    <?=$this->context($this)->renderInContext('librarycards/selectcard.phtml', array('user' => $this->auth()->isLoggedIn())); ?>
+
+    <? if (!empty($this->recordList)): ?>
+      <h2 class="pull-left flip"><?= $this->transEsc("Reserved study rooms")?></h2>
+      <? $iteration = 0; ?>
+
+        <div>
+          <table class="table table-striped">
+            <tr>
+              <th><?=$this->transEsc("Room number")?></th>
+              <th><?=$this->transEsc("Reservation period")?></th>
+              <th width="20%"><?=$this->transEsc("Cancel reservation")?></th>
+            </tr>
+            <? foreach ($this->recordList as $resource): ?>
+              <? $iteration++; ?>
+              <? $ilsDetails = $resource->getExtraDetail('ils_details'); ?>
+              <form class="form-inline" data-lightbox method="post" name="studyCancelForm" action="<?=$this->url('myresearch-cancelroom')?>">
+                <tr>
+                  <td><?=$this->transEsc("Study room")?> <?= $key = array_search($ilsDetails['studynumber'], $roomsNr); ?></td>
+                  <input type="hidden" name="studyRoomNr" value="<?= $key; ?>"/>
+                  <td><?= $ilsDetails['description'] ?> <?= $ilsDetails['statuscode']; ?></td>
+                  <input type="hidden" name="description" value="<?= $ilsDetails['description']; ?>"/>
+                  <input type="hidden" name="statusCode" value="<?= $ilsDetails['statuscode']; ?>"/>
+                  <!-- <td><a data-lightbox href="<?=$this->url('myresearch-cancelroom')?>"><?= $this->transEsc("Cancel")?></a></td> -->
+                  <td><input class="btn btn-primary" type="submit" value="<?= $this->transEsc("Cancel")?>"></td>
+                </tr>
+              </form>
+            <? endforeach; ?>
+          </table>
+        </div>
+
+    <? else: ?>
+      <?=$this->transEsc('You do not have any study rooms reserved') ?>.
+    <? endif; ?> 
+      
+    <div>
+      <h2><?= $this->transEsc("New reservation")?></h2>
+      <div >
+        <form class="form-inline" data-lightbox method="post" name="studyReservationForm" action="<?=$this->url('myresearch-requestroom')?>">
+          <div class="floatleft width-30">
+            <div class="margin-5">
+              <label><?= $this->transEsc("Study room number")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("Beginning of the reservation")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("End of the reservation")?></label>
+            </div>
+            <div class="margin-5">
+              <label><?= $this->transEsc("Reservation type")?></label>
+            </div>
+          </div>
+          <div class="floatright width-70">          
+            <div class="margin-5">
+              <select id="studyRoomNr" class="type form-control" name="studyRoomNr">
+                <? foreach ($roomsNr as $key => $value): ?>
+                  <option value="<?=$key?>"><?=$key?></option>  
+                <? endforeach; ?>
+              </select>
+            </div>
+            <div class="margin-5">
+              <input id="startday" class="form-control" type="text" name="startday" value="<?= date("d. m. Y", strtotime('tomorrow')); ; ?>"></input>
+            </div>
+            <div class="margin-5">
+              Automaticky počítaný - js
+            </div>
+            <div class="margin-5">
+              <select id="resType" class="type form-control" name="resType">
+                <option value="day"><?= $this->transEsc("Day")?></option>
+                <option value="week"><?= $this->transEsc("Week")?></option>
+                <option value="month"><?= $this->transEsc("Month")?></option>
+              </select>
+            </div>            
+          </div>
+          <div >
+            <input class="btn btn-primary" type="submit" value="<?= $this->transEsc("Reserve")?>">
+
+            <!-- <a class="placehold" data-lightbox href="<?=$this->recordLink()->getRequestUrl($row['link'])?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc("Place a Hold")?></a> -->
+
+            <!-- <a class="btn btn-primary" data-lightbox href="http://vufind3.local/Record/000032265/Hold?id=000963580&item_id=KNA50000963580000450&hashKey=0bb924551eb540d36168fc3b655c340e"><?=$this->transEsc("Reserve")?></a> -->
+
+            <!-- https://vufind.lib.cas.cz/Record/000963580/Hold?id=000963580&item_id=KNA50000963580000040&hashKey=cd1acf71c359e8e8414edc4742a8105d#tabnav -->
+          </div>  
+        </form>
+      </div>
+    </div>
+    <div>
+      <h2><?= $this->transEsc("Study rooms occupancy")?></h2>
+      <!-- <?= dump($allStudyRooms);?> -->
+      <div class="btn-group" data-toggle="buttons">
+        <? foreach ($roomsNr as $key => $value): ?>
+          <label class="btn btn-primary"><?=$key?></label>
+
+        <? endforeach; ?>
+        <!-- id, item_id status_code, description -->
+      </div>
+      <div>
+        <? foreach ($allStudyRooms[$roomsNr['1']] as $key => $value): ?>
+          <!-- <?= dump($key . "  " . $value['item_id'] . "  ". $value['description']); ?> -->
+          <!-- <?= dump($value); ?> -->
+        <? endforeach; ?>
+      </div>
+    </div>
+
+    <div>
+      <?
+      date_default_timezone_set("Europe/Prague");
+
+      /* Set the date */
+      $date = strtotime(date("Y-m-d"));
+
+      // $lastM = strtotime('last Monday');
+      // dump(date('d', $lastM));
+
+      $day = date('d', $date);
+      $month = date('m', $date);
+      $year = date('Y', $date);
+      $firstDay = mktime(0,0,0,$month, 1, $year);
+      // $firstDay = $lastM;
+      $title = strftime('%B', $firstDay);
+      $dayOfWeek = date('D', $firstDay);
+      $daysInMonth = cal_days_in_month(0, $month, $year);
+
+      $timestamp = strtotime('next Monday');
+      $weekDays = array();
+      for ($i = 0; $i < 7; $i++) {
+        $weekDays[] = strftime('%a', $timestamp);
+        $timestamp = strtotime('+1 day', $timestamp);
+      }
+
+      $blank = date('w', strtotime("{$year}-{$month}-01"));
+      $blank = $blank - 1;
+      ?>
+
+      <? 
+      $mar = array();
+
+      for($i = 0; $i < $blank; $i++) {
+        $mar[$i]['value'] = "";
+      }
+
+      for($i = 1; $i <= $daysInMonth; $i++){
+        $mar[$i + $blank - 1]['value'] = $i;
+        if($day == $i) {
+          $mar[$i + $blank - 1]['today'] = true;
+        }
+      }
+
+      for($i = 0; ($i + $blank + $daysInMonth) % 7 != 0; $i++) {
+        $mar[$i + $blank + $daysInMonth]['value'] = "";
+      }
+
+      ?>
+
+      <table class="table table-bordered" >
+        <tr>
+          <th colspan="7" class="text-center"> <? echo $title ?> <? echo $year ?> </th>
+        </tr>
+        <tr>
+          <? foreach($weekDays as $key => $weekDay) : ?>
+            <td class="text-center"><? echo $weekDay ?></td>
+          <? endforeach ?>
+        </tr>
+        <tr>
+          <? for($i = 0; $i < count($mar); $i++): ?>
+            <td>
+              <? if($day == $mar[$i]['value']): ?>
+                <strong><?= $mar[$i]['value']; ?></strong>  
+              <? else: ?>
+                <?= $mar[$i]['value']; ?>
+              <? endif; ?>   
+            </td>
+            <? if(($i+1) % 7 == 0): ?>
+              </tr><tr>
+            <? endif; ?>
+          <? endfor; ?>           
+        </tr>
+      </table>
+
+    </div>
+  </div>
+
+
+
+  <div class="<?=$this->layoutClass('sidebar')?>">
+    <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'studyrooms'))?>
+  </div>
+</div>

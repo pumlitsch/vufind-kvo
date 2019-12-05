@@ -1,0 +1,17 @@
+<?
+  // Set page title.
+  $this->headTitle($this->translate('Record Citations'));
+
+  // Set up breadcrumbs:
+  $this->layout()->breadcrumbs = '<li>' . $this->searchMemory()->getLastSearchLink($this->transEsc('Search'), '', '</li> ')
+    . '<li>' . $this->recordLink()->getBreadcrumb($this->driver) . '</li> '
+    . '<li class="active">' . $this->transEsc('Record Citations') . '</li>';
+
+  $id = $this->driver->getUniqueId();
+
+?>
+
+<div class="citace_com">
+ <iframe src="http://www.citacepro.com/api/avcr/citace/<?=$id ?>" frameborder="0" width="100%"></iframe> 
+</div>
+

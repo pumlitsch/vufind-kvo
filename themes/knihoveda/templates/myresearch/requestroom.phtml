@@ -1,0 +1,29 @@
+<?
+    // Set page title.
+    $this->headTitle($this->translate('Create reservation'));
+    $startday = $_POST['startday'];
+    $studyRoomNr =  $_POST['studyRoomNr'];
+    $restype =  $_POST['restype'];
+    $roomsNr = array("1" => "000963580", "2" => "002169267");
+?>
+<h2><?=$this->transEsc('Create reservation')?></h2>
+
+<div>Potvrzením rezervace se zamluví daná studovna na dané časové rozpětí, zároveň se naúčtuje příslušný poplatek.</div>
+<div></div>
+
+<div class="margin-5">
+  <div>Požadovaná rezervace: </div>
+  <div><?= $this->transEsc("Reservation period")?>: <?= $startday?></div>
+  <div><?= $this->transEsc("Study room number")?>: <?= $studyRoomNr?></div>
+
+</div>
+
+<div class="margin-5">
+  <div class="hold-form">
+  	<form class="form-horizontal" method="post" name="placeHold">
+  	
+    <input class="btn btn-primary" type="submit" value="<?= $this->transEsc("Confirm reservation")?>">
+  	</form>
+</div>
+
+

@@ -1,0 +1,146 @@
+<div class="resultList">
+  <div class="row">
+    <div>
+      <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
+      <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getSourceIdentifier())?>" class="hiddenSource" />
+    </div>
+
+    <? $recordSource = $this->driver->getRecordSource();?>
+<!--     <? $img = ($recordSource=="mua") ? "article.png" : "book.png"; ?> -->
+    <? switch ($recordSource) {
+          case "mua":
+              $img = "book_yellow.png";
+              break;
+          case "mua-kod":
+          case "kvo-aleph":
+              $img = "book_green.png";
+              break;
+          case "clavius":
+          case "nkp":
+              $img = "book_red_stock.png";
+              break;
+          default:
+              $img = "article.png";
+    } ?>
+    <div class="cover left summcover">
+      <a href="<?=$this->recordLink()->getUrl($this->driver)?>"><img src="/themes/knihoveda/images/<?=$img?>" title="<?=$this->transEsc($recordSource);?>"> </a>
+    </div>
+
+    <div class="resultText middle">
+      <div>
+        <? $summAuthors = $this->driver->getPrimaryAuthorsWithHighlighting(); if (!empty($summAuthors)): ?>
+          <?=$this->transEsc('by')?>
+          <? $authorCount = count($summAuthors); foreach ($summAuthors as $i => $summAuthor): ?>
+            <a href="<?=$this->record($this->driver)->getLink('author', $this->highlight($summAuthor, null, true, false))?>"><?=$this->highlight($summAuthor)?></a><?=$i + 1 < $authorCount ? ',' : ''?>
+          <? endforeach; ?>
+        <? endif; ?>
+      </div>
+
+      <? $titleCaption = $this->driver->getTitleCaption(); ?>
+      <? if (!empty($titleCaption)): ?>
+        <div>
+          <?=$this->transEsc('Title caption') . ": " ?>
+          <?= $titleCaption; ?>
+        </div>
+      <? endif; ?>
+
+      <? $summTitle = $this->driver->getTitle() ?>
+      <? if(!empty($summTitle)) : ?>
+        <div>
+          <?=$this->transEsc('Title') . ': ' ?>
+          <a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
+            <?= $summTitle; ?>
+          </a>
+        </div>
+      <? endif; ?>
+
+      <? $summBCBT = $this->driver->getBCBT() ?>
+      <? if(empty($summTitle) && !empty($summBCBT)) : ?>
+        <div>
+          <?=$this->transEsc('BCBT') . ': ' ?>
+          <a href="<?=$this->recordLink()->getUrl($this->driver)?>" class="title">
+            <?= $summBCBT; ?>
+          </a>
+        </div>
+
+      <? endif; ?>
+
+      <? $imprints = $this->driver->getImprint();?>
+      <? if (!empty($imprints)) : ?>
+	<div>
+	  <? if ($recordSource == 'mua') : ?>
+	    <?=$this->transEsc('dating') . ': ' . $imprints[0]?>
+	  <? else : ?>
+	    <?=$this->transEsc('Imprint') . ': ' . $imprints[0]?>
+	  <? endif; ?>
+        </div>
+      <? endif; ?>
+
+      <? $record_number = $this->driver->getRecordNumber();?>
+
+      <? if (!empty($record_number)) : ?>
+          <div>
+	      <? if ($recordSource == 'clavius'): ?>
+	        <?=$this->transEsc('record_number_bcbt') . ': ' . $record_number; ?>
+        <? endif; ?>
+        <? if ($recordSource == 'nkp'): ?>
+	        <?=$this->transEsc('record_number_kps') . ': ' . $record_number; ?>
+        <? endif; ?>
+            <? $coreMua_sig = $this->driver->getMuaSig();?>
+  	    <? if ($coreMua_sig && ($recordSource == 'mua')): ?>
+  	      <?=$this->transEsc('record_number_rkp') . ': ' . $coreMua_sig; ?>
+  	    <? endif; ?>
+          </div>
+      <? endif; ?>
+
+
+    </div>
+    <div class="col-xs-3 fulltext_links hidden-print">
+
+      <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+        <? /* Add to favorites */ ?>
+        <!-- <i class="fa fa-fw fa-star"></i> <a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>" data-lightbox class="save-record" data-id="<?=$this->escapeHtmlAttr($this->driver->getUniqueId()) ?>"><?=$this->transEsc('Add to favorites')?></a><br/> -->
+        <? /* Saved lists */ ?>
+        <div class="savedLists alert alert-info hidden">
+          <strong><?=$this->transEsc("Saved in")?>:</strong>
+        </div>
+      <? endif; ?>
+
+      <? $summURLs = $this->driver->getURLs(); ?>
+      <? if(!empty($summURLs)): ?>
+	<?if (count($summURLs) > 1): ?>
+          <div >
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-camera-retro camera_link"></i></a>
+              <ul class="dropdown-menu">
+                <? foreach ($summURLs as $key => $value) : ?>
+                  <li class="urllink">
+                    <?if ($value['link']): ?><a href="<?= $value['link']; ?>" target="_blank"><? endif; ?>
+                    <?= $value['desc']; ?>
+                    <?if ($value['link']): ?></a><? endif; ?>
+                  </li>
+                <? endforeach; ?>
+              </ul>
+          </div>
+        <? else : ?>
+	  <div >
+            <a href="<?= $summURLs[0]['link']; ?>" target="_blank" ><i class="fa fa-camera-retro camera_link"></i></a>
+          </div>
+        <? endif; ?>
+      <? endif; ?>
+
+      <? /* Hierarchy tree link */ ?>
+      <? $trees = $this->driver->tryMethod('getHierarchyTrees'); if (!empty($trees)): ?>
+        <? foreach ($trees as $hierarchyID => $hierarchyTitle): ?>
+          <div class="hierarchyTreeLink">
+            <input type="hidden" value="<?=$this->escapeHtmlAttr($hierarchyID)?>" class="hiddenHierarchyId" />
+            <i class="fa fa-fw fa-sitemap"></i>
+            <a class="hierarchyTreeLinkText" data-lightbox href="<?=$this->recordLink()->getTabUrl($this->driver, 'HierarchyTree')?>?hierarchy=<?=urlencode($hierarchyID)?>#tabnav" title="<?=$this->transEsc('hierarchy_tree')?>" data-lightbox-href="<?=$this->recordLink()->getTabUrl($this->driver, 'AjaxTab')?>?hierarchy=<?=urlencode($hierarchyID)?>" data-lightbox-post="tab=hierarchytree">
+              <?=$this->transEsc('hierarchy_view_context')?><? if (count($trees) > 1): ?>: <?=$this->escapeHtml($hierarchyTitle)?><? endif; ?>
+            </a>
+          </div>
+        <? endforeach; ?>
+      <? endif; ?>
+
+    </div>
+  </div>
+</div>

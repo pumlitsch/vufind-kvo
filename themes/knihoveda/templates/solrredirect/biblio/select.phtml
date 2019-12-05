@@ -1,0 +1,48 @@
+<?
+include_once("/var/www/util/util.php");
+
+$current_ip = $_SERVER['REMOTE_ADDR'];
+
+$accepted_ips = ['147.231.62.21', '147.231.118.95', '178.238.42.111'];
+
+// if (in_array($current_ip, $accepted_ips)) {
+
+  $uri = $_SERVER['REQUEST_URI'];
+  $query = $_SERVER['QUERY_STRING'];
+
+  parse_str($query, $parsed_query);
+
+  if (empty($parsed_query['wt'])) {
+    header('Content-Type: application/xml');
+  } else if ($parsed_query['wt']=='xml') {
+    header('Content-Type: application/xml');
+  } else if ($parsed_query['wt']=='json') {
+    header('Content-Type: application/json');
+  } else if ($parsed_query['wt']=='javabin') {
+//     header('Content-Type: application/octet-stream');
+//     header('Content-Disposition: attachment; filename="select"');
+    header('Content-Type: text/html');
+  }
+
+  $url = "http://localhost:8081/solr/biblio/select?" . $query;
+
+  $solr_response = file_get_contents($url);
+
+  if ($parsed_query['wt'] == 'json') {
+    $parsed_json = json_decode($solr_response, true);
+  }
+
+  echo $solr_response;
+
+
+
+
+
+// } else {
+//   header('Content-Type: text/html');
+//   header('charset: UTF-8');
+//   echo "Přístup jen z povolených IP adres.";
+// }
+
+
+?>

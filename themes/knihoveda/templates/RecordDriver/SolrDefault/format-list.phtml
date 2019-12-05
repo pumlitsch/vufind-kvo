@@ -1,0 +1,3 @@
+<? $i = 0; foreach ($this->driver->getFormats() as $format):?><?=($i++ == 0)?'':', '?>
+  <span class="iconlabel <?=$this->record($this->driver)->getFormatClass($format)?>"><?=$this->transEsc($format)?></span>
+<? endforeach; ?>

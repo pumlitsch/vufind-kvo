@@ -1,0 +1,72 @@
+<?
+  // TODO: This file needs love
+  $topFacetSet = $this->recommend->getTopFacetSet();
+  $topFacetSettings = $this->recommend->getTopFacetSettings();
+  $results = $this->recommend->getResults();
+?>
+<? if (isset($topFacetSet)): ?>
+
+  <div class="top_facets">
+  <? $row=0; foreach($topFacetSet as $title => $cluster): ?>
+  <?
+  foreach ($cluster['list'] as $key => $facet) {
+  	if (in_array($facet['value'], ['clavius', 'nkp', 'mua'])) {
+  		$newFacets['main'][] = $facet;
+  	} else {
+  		$newFacets['rest'][] = $facet;
+  	}
+  }
+  // dump($newFacets);
+  ?>
+    <? $moreClass = ' NarrowGroupHidden_'.$this->escapeHtml($title).' hidden'; ?>
+    <? $allowExclude = $this->recommend->excludeAllowed($title); ?>
+    <strong><?=$this->transEsc($cluster['label'])?></strong><?=$this->transEsc("top_facet_suffix") ?>
+    <div class="top_facets_results">
+    	<? foreach ($newFacets as $newKey => $newValue) : ?>
+    		<div class="row top-row col-sm-6">
+    			<? foreach ($newValue as $key => $thisFacet) : ?>
+    				<? switch ($thisFacet['value']) {
+				          case "mua":
+				              $color = "text_yellow";
+				              break;
+				          case "mua-kod":
+				          case "kvo-aleph":
+				              $color = "text_green";
+				              break;
+				          case "clavius":
+				          case "nkp":
+				              $color = "text_red_stock";
+				              break;
+				          default:
+				              $color = "text_red_stock";
+				    } ?>
+    				<div>
+    					<? if ($thisFacet['isApplied']):
+						    if (isset($thisFacet['specialType']) && $thisFacet['specialType'] == 'keyword') {
+						      $removeLink = $this->currentPath().$results->getUrlQuery()->replaceTerm($thisFacet['value'], '');
+						    } else {
+						      $removeLink = $this->currentPath().$results->getUrlQuery()->removeFacet($title, $thisFacet['value'], true, $thisFacet['operator']);
+						    } ?>
+						     <a href="<?=$removeLink ?>" class="applied">
+						      <i class="fa fa-check-square-o <?=$color;?>"></i> <?=$this->escapeHtml($thisFacet['displayText'])?>
+						    </a>
+						    <span class="badge"><?=$this->localizedNumber($thisFacet['count']) ?></span>
+						  <? else: ?>
+						    <a href="<?=$this->currentPath().$results->getUrlQuery()->addFacet($title, $thisFacet['value'], $thisFacet['operator'])?>"><i class="fa fa-square-o <?=$color;?>"></i> <?=$this->escapeHtml($thisFacet['displayText'])?></a> <span class="badge"><?=$this->localizedNumber($thisFacet['count']) ?>
+						    <? if ($allowExclude): ?>
+						      <a href="<?=$this->currentPath().$results->getUrlQuery()->addFacet($title, $thisFacet['value'], 'NOT')?>" title="<?=$this->transEsc('exclude_facet')?>"><i class="fa fa-times"></i></a>
+						    <? endif; ?>
+						    </span>
+						  <? endif; ?>
+    				</div>
+    			<? endforeach; ?>
+    		</div>
+
+    	<? endforeach; ?>
+
+    	<div class="clear"></div>
+
+    </div>
+  <? endforeach; ?>
+  </div>
+<? endif; ?>

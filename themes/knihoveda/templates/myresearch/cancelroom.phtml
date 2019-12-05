@@ -1,0 +1,28 @@
+<?
+    // Set page title.
+    $this->headTitle($this->translate('Cancel reservation'));
+    $studyRoomNr =  $_POST['studyRoomNr'];
+
+    $roomsNr = array("1" => "000963580", "2" => "002169267");
+    // dump($_POST);
+    // dump($_GET);
+    // dump("jupikijej");
+?>
+<h2><?=$this->transEsc('Cancel reservation')?></h2>
+
+<div>Kliknutím na potvrzení zrušení rezervace se odešle email výpůjční službě, která si s ním poradí podle libosti. Rezervace bude dál vidět v přehledu, dokud se s ní nevypořádají.
+document root: <?=$_SERVER['DOCUMENT_ROOT'];?>
+</div>
+
+<div class="margin-5">
+  Rušená rezervace: 
+  <div><?= $this->transEsc("Study room number")?>: <?= $studyRoomNr?></div>
+</div>
+
+
+<div class="margin-5">
+  <form action="/MyResearch/CreateFile">
+    <input class="btn btn-primary" type="submit" value="<?= $this->transEsc("Cancel reservation")?>">
+  </form>
+</div>
+

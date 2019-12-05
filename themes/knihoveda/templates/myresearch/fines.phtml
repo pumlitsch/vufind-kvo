@@ -1,0 +1,116 @@
+<?
+    $this->headScript()->appendFile("gpeform.js");
+    // Set up page title:
+    $this->headTitle($this->translate('My Fines'));
+
+    // Set up breadcrumbs:
+    $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Fines') . '</li>';
+?>
+<div class="<?=$this->layoutClass('mainbody')?>">
+  <?=$this->flashmessages()?>
+  <?=$this->context($this)->renderInContext('librarycards/selectcard.phtml', array('user' => $this->auth()->isLoggedIn())); ?>
+  <? if (empty($this->fines)): ?>
+    <?=$this->transEsc('You do not have any fines')?>
+  <? else: ?>
+    <? if (!empty($this->fines['cash'])): ?>
+      <table class="table table-striped" summary="<?=$this->transEsc('Your Fines')?>">
+      <tr>
+        <td colspan="4">
+          <h3><?=$this->transEsc('Cash transactions')?></h3>
+        </td>
+      </tr>
+      <tr>
+        <th><?=$this->transEsc('Title')?></th>
+        <th><?=$this->transEsc('Checked Out')?></th>
+        <th><?=$this->transEsc('Description')?></th>
+        <th><?=$this->transEsc('Fee')?></th>
+      </tr>
+      <? $totalDue = 0; ?>
+      <? foreach ($this->fines['cash'] as $record): ?>
+        <tr>
+          <td>
+            <? if (empty($record['title'])): ?>
+              <?=$this->transEsc('not_applicable')?>
+            <? elseif (!isset($record['driver']) || !is_object($record['driver'])): ?>
+              <?=$this->escapeHtml(trim($record['title'], '/:'))?>
+            <? else: ?>
+              <a href="<?=$this->recordLink()->getUrl($record['driver'])?>"><?=$this->escapeHtml(trim($record['title'], '/:'))?></a>
+            <? endif; ?>
+          </td>
+          <td><?=isset($record['checkout']) ? $this->escapeHtml($record['checkout']) : ''?></td>
+          <td><?=isset($record['description']) ? $this->escapeHtml($record['description']) : ''?></td>
+          <td><?=isset($record['amount']) ? $this->safeMoneyFormat($record['amount']/100.00) : ''?></td>
+        </tr>
+        <? $totalDue += $record['amount']; ?>
+      <? endforeach; ?>
+        <tr style="font-weight:bold"><td colspan="3"><?=$this->transEsc('Total')?>:</td><td><?=$this->safeMoneyFormat($totalDue/100.00) ?></td></tr>
+
+      <? if ($totalDue>0): ?>
+        <tr>
+          <td></td>
+          <td class="bold" colspan="2"></td>
+          <td class="align-right">
+            <form method="get" action="<?= $this->payurl ?>" name="gpeForm" id="gpeForm" class="pay" onsubmit="gpeSubmit();">
+              <input type="hidden" name="ID" value="<?= $this->patron['id'] ?>" />
+              <input type="hidden" name="ADM" value="KNA50" />
+              <input type="hidden" id="gpeAmount" name="AMOUNT" value="<?= $totalDue ?>" />
+              <input type="hidden" id="gpeTime" name="TIME" value="0"/>
+              <input type="hidden" id="gpeDigest" name="DIGEST" value="0"/>
+
+              <input type="submit" name="submit" class="gpe_submit" value="<?= $this->transEsc("Pay online") ?>"/>
+            </form>
+          </td>
+        </tr>
+        <tr><td></td></tr>
+      <? endif; ?>
+      
+    <? endif; ?>
+    <? if (!empty($this->fines['loan'])): ?>
+      <? if (!empty($this->fines['cash'])): ?>
+        <tr class="blank_row">
+          <td colspan="3"></td>
+        </tr>
+        <tr class="blank_row">
+          <td colspan="3"></td>
+        </tr>
+      <? endif; ?>
+      <tr>
+        <td colspan="4">
+          <h3><?=$this->transEsc('Fees for unreturned loans')?></h3>
+        </td>
+      </tr>
+      <tr>
+        <th><?=$this->transEsc('Title')?></th>
+        <th><?=$this->transEsc('Checked Out')?></th>
+        <th><?=$this->transEsc('Description')?></th>
+        <th><?=$this->transEsc('Fee')?></th>
+      </tr>
+      <? $totalDue = 0; ?>
+      <? foreach ($this->fines['loan'] as $record): ?>
+        <tr>
+          <td>
+            <? if (empty($record['title'])): ?>
+              <?=$this->transEsc('not_applicable')?>
+            <? elseif (!isset($record['driver']) || !is_object($record['driver'])): ?>
+              <?=$this->escapeHtml(trim($record['title'], '/:'))?>
+            <? else: ?>
+              <a href="<?=$this->recordLink()->getUrl($record['driver'])?>"><?=$this->escapeHtml(trim($record['title'], '/:'))?></a>
+            <? endif; ?>
+          </td>
+          <td><?=isset($record['checkout']) ? $this->escapeHtml($record['checkout']) : ''?></td>
+          <td><?=isset($record['description']) ? $this->escapeHtml($record['description']) : ''?></td>
+          <td><?=isset($record['amount']) ? $this->safeMoneyFormat($record['amount']/100.00) : ''?></td>
+        </tr>
+        <? $totalDue += $record['amount']; ?>
+      <? endforeach; ?>
+      <tr style="font-weight:bold"><td colspan="3"><?=$this->transEsc('Total')?>:</td><td><?=$this->safeMoneyFormat($totalDue/100.00) ?></td></tr>
+      </table>
+    <? else: ?>
+      </table>
+    <? endif; ?>
+  <? endif; ?>
+</div>
+
+<div class="<?=$this->layoutClass('sidebar')?>">
+  <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'fines'))?>
+</div>
